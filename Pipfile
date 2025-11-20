@@ -8,6 +8,7 @@ uvicorn = {extras = ["standard"], version = "*"}
 fastapi = "*"
 httpx = "*"
 python-dotenv = "*"
+openai = "*"
 
 [dev-packages]
 
