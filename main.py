@@ -60,13 +60,11 @@ def _verify_gitlab_signature(token: Optional[str]):
 @app.post("/webhook/github")
 async def github_webhook(
     request: Request,
-    x_github_event: Optional[str] = Header(None, alias="X-GitHub-Event"),
     x_hub_signature_256: Optional[str] = Header(
         None, alias="X-Hub-Signature-256"),
 ):
     """github webhook endpoint"""
     raw_body = await request.body()
-    print("Received GitHub event:", raw_body)
     _verify_github_signature(x_hub_signature_256, raw_body)
 
 
@@ -142,8 +140,9 @@ async def gitlab_webhook(
     try:
         payload = json.loads(raw.decode("utf-8"))
         print("Parsed GitLab payload:\n", payload)
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload")
+    except Exception as exc:
+        raise HTTPException(
+            status_code=400, detail="Invalid JSON payload") from exc
 
     if payload.get("object_kind") != "merge_request":
         return JSONResponse({"ok": True, "skipped": f"kind {payload.get("object_kind")}"})

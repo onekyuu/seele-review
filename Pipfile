@@ -9,6 +9,8 @@ fastapi = "*"
 httpx = "*"
 python-dotenv = "*"
 openai = "*"
+pyyaml = "*"
+pydantic-settings = "*"
 
 [dev-packages]
 
