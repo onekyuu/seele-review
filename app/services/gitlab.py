@@ -6,8 +6,33 @@ import httpx
 from fastapi import HTTPException
 
 from app.config import settings
-from app.schemas.gitlab.merge_request_diff import MRDiff
+from app.schemas.gitlab.merge_request_diff import MRDiff, MRDiffItem
 from app.schemas.gitlab.merge_request_object import MRObj
+
+CODE_EXTENSIONS = {
+    ".py",
+    ".js",
+    ".jsx",
+    ".ts",
+    ".tsx",
+    ".json",
+    ".html",
+    ".css",
+    ".scss",
+    ".go",
+    ".rs",
+    ".java",
+    ".kt",
+    ".c",
+    ".h",
+    ".cpp",
+    ".hpp",
+    ".yml",
+    ".yaml",
+    ".toml",
+    ".sh",
+    ".sql",
+}
 
 
 class GitlabApiError(Exception):
@@ -15,8 +40,9 @@ class GitlabApiError(Exception):
 
 
 class GitlabClient:
-    def __init__(self, base_url: str):
+    def __init__(self, base_url: str, code_extensions: Optional[set[str]] = None):
         self.base_url = base_url.rstrip("/")
+        self.code_extensions = code_extensions or CODE_EXTENSIONS
 
     def _verify_gitlab_signature(self, token: Optional[str]):
         if not settings.gitlab_webhook_secret:
@@ -40,17 +66,18 @@ class GitlabClient:
                 headers=headers,
             )
             mr_resp.raise_for_status()
-            mr_obj = MRObj.model_validate_json(mr_resp.json())
+            mr_obj = MRObj.model_validate(mr_resp.json())
 
             diff_resp = await client.get(
                 f"{settings.gitlab_api_base}/projects/{project_id}/merge_requests/{iid}/changes",
                 headers=headers,
             )
             diff_resp.raise_for_status()
-            diff_obj = MRDiff.model_validate_json(diff_resp.json()).changes or []
+            diff_list = MRDiff.model_validate(diff_resp.json()).changes or []
+            filtered_diff_list = self.filter_no_code_file(diff_list)
 
         normalized_diff: List[Dict[str, Any]] = []
-        for f in diff_obj:
+        for f in filtered_diff_list:
             status = "modified"
             if f.new_file:
                 status = "added"
@@ -68,67 +95,19 @@ class GitlabClient:
 
         return normalized_diff, mr_obj
 
+    def filter_no_code_file(self, diffs: List[MRDiffItem]) -> List[MRDiffItem]:
+        filtered = []
 
-# ALLOWED_CODE_EXTS = {
-#     ".ts",
-#     ".tsx",
-#     ".js",
-#     ".jsx",
-#     ".vue",
-#     ".mjs",
-#     ".cjs",
-#     ".json",
-#     ".py",
-#     ".java",
-#     ".go",
-#     ".rs",
-#     ".php",
-#     ".rb",
-#     ".cs",
-#     ".kt",
-#     ".kts",
-#     ".scala",
-#     ".c",
-#     ".h",
-#     ".cpp",
-#     ".hpp",
-#     ".mdx",
-# }
-#
-#
-# BLOCKED_SUFFIXES = {
-#     ".min.js",
-#     ".lock",
-#     ".map",
-# }
-#
-#
-# def _is_code_file(path: str) -> bool:
-#     lower = path.lower()
-#
-#     for suf in BLOCKED_SUFFIXES:
-#         if lower.endswith(suf):
-#             return False
-#
-#     for ext in ALLOWED_CODE_EXTS:
-#         if lower.endswith(ext):
-#             return True
-#
-#     return False
-#
-#
-# def filter_changes_for_ai(changes: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
-#     result: list[dict[str, Any]] = []
-#
-#     for change in changes:
-#         new_path = change.get("new_path") or ""
-#         old_path = change.get("old_path") or ""
-#
-#         path_for_check = new_path or old_path
-#         if not path_for_check:
-#             continue
-#
-#         if _is_code_file(path_for_check):
-#             result.append(change)
-#
-#     return result
+        for item in diffs:
+            filename = item.new_path or item.old_path
+            ext = self._get_extension(filename)
+
+            if ext in self.code_extensions:
+                filtered.append(item)
+
+        return filtered
+
+    def _get_extension(self, filename: str) -> str:
+        if "." not in filename:
+            return ""
+        return "." + filename.split(".")[-1]

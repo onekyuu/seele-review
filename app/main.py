@@ -22,16 +22,11 @@ async def handle_gitlab_webhook_trigger(
     x_gitlab_token: Optional[str] = Header(None, alias="X-Gitlab-Token"),
 ):
     """gitlab webhook endpoint"""
-    # print("Received Request body:\n", await request.body())
-    # print("Received GitLab event:\n", x_gitlab_event)
-    # print("Received AI mode:\n", x_ai_mode)
-    # print("Received Push URL:\n", x_push_url)
     gitlab_client._verify_gitlab_signature(x_gitlab_token)
     raw = await request.body()
 
     try:
         payload = GitlabMergeRequestPayload.model_validate_json(raw)
-        print("Parsed GitLab payload:\n", payload)
     except Exception as exc:
         raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
 
@@ -70,4 +65,3 @@ async def handle_gitlab_webhook_trigger(
 
     print(f"Processing GitLab MR !{iid} in project {project_id} with AI mode {ai_mode}")
     print(f"MR Diff:\n{diff}")
-    print(f"MR OBJ:\n{mr_obj}")
