@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.schemas.gitlab.merge_request import GitlabMergeRequestPayload
-from app.services.gitlab import GitlabClient
+from app.services.gitlab import GitlabApiError, GitlabClient
 
 app = FastAPI(title="SEELE Review FastAPI", version="0.1.0")
 
@@ -57,9 +57,16 @@ async def handle_gitlab_webhook_trigger(
     push_url = x_push_url or ""
     api_token = settings.gitlab_token or None
 
-    diff, mr_obj = await gitlab_client._get_gitlab_mr_diff(
-        project_id, iid, api_token=api_token
-    )
+    try:
+        diff, mr_obj = await gitlab_client._get_gitlab_mr_diff(
+            project_id, iid, api_token=api_token
+        )
+    except GitlabApiError as e:
+        print(f"[ERROR] get gitlab mr diff failed: {e}")
+        return JSONResponse(
+            {"message": "failed to fetch changes from gitlab", "error": str(e)},
+            status_code=500,
+        )
     desc = mr_obj.description or ""
     repo_label = f"gitlab:{payload.project.path_with_namespace}"
 
