@@ -5,7 +5,7 @@ from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.responses import JSONResponse
 
 from app.config import settings
-from app.schemas.gitlab import GitlabMergeRequestPayload
+from app.schemas.gitlab.merge_request import GitlabMergeRequestPayload
 from app.services.gitlab import GitlabClient
 
 app = FastAPI(title="SEELE Review FastAPI", version="0.1.0")
@@ -65,7 +65,7 @@ async def handle_gitlab_webhook_trigger(
     diff, mr_obj = await gitlab_client._get_gitlab_mr_diff(
         project_id, iid, api_token=api_token
     )
-    desc = mr_obj.get("description", "") or ""
+    desc = mr_obj.description or ""
     repo_label = f"gitlab:{payload.project.path_with_namespace}"
 
     print(f"Processing GitLab MR !{iid} in project {project_id} with AI mode {ai_mode}")

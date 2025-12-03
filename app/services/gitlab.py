@@ -1,12 +1,13 @@
 from __future__ import annotations
 
-from os import wait
 from typing import Any, Dict, Iterable, List, Optional
 
 import httpx
 from fastapi import HTTPException
 
 from app.config import settings
+from app.schemas.gitlab.merge_request_diff import MRDiff
+from app.schemas.gitlab.merge_request_object import MRObj
 
 
 class GitlabApiError(Exception):
@@ -39,29 +40,29 @@ class GitlabClient:
                 headers=headers,
             )
             mr_resp.raise_for_status()
-            mr_obj = mr_resp.json()
+            mr_obj = MRObj.model_validate_json(mr_resp.json())
 
             diff_resp = await client.get(
                 f"{settings.gitlab_api_base}/projects/{project_id}/merge_requests/{iid}/changes",
                 headers=headers,
             )
             diff_resp.raise_for_status()
-            diff_obj = diff_resp.json().get("changes", [])
+            diff_obj = MRDiff.model_validate_json(diff_resp.json()).changes or []
 
         normalized_diff: List[Dict[str, Any]] = []
         for f in diff_obj:
             status = "modified"
-            if f.get("new_file"):
+            if f.new_file:
                 status = "added"
-            elif f.get("deleted_file"):
+            elif f.deleted_file:
                 status = "deleted"
-            elif f.get("renamed_file"):
+            elif f.renamed_file:
                 status = "renamed"
             normalized_diff.append(
                 {
-                    "filename": f.get("new_path", "") or f.get("old_path"),
+                    "filename": f.new_path or f.old_path,
                     "status": status,
-                    "patch": f.get("diff", ""),
+                    "patch": f.diff,
                 }
             )
 
