@@ -50,7 +50,8 @@ class GitlabClient:
                 status_code=400, detail="Missing GITLAB_WEBHOOK_SECRET configuration"
             )
         if token is None:
-            raise HTTPException(status_code=400, detail="Missing X-Gitlab-Token header")
+            raise HTTPException(
+                status_code=400, detail="Missing X-Gitlab-Token header")
         if token != settings.gitlab_webhook_secret:
             raise HTTPException(status_code=401, detail="Invalid GitLab token")
 
@@ -68,32 +69,16 @@ class GitlabClient:
             mr_resp.raise_for_status()
             mr_obj = MRObj.model_validate(mr_resp.json())
 
-            diff_resp = await client.get(
+            diff_response = await client.get(
                 f"{settings.gitlab_api_base}/projects/{project_id}/merge_requests/{iid}/changes",
                 headers=headers,
             )
-            diff_resp.raise_for_status()
-            diff_list = MRDiff.model_validate(diff_resp.json()).changes or []
-            filtered_diff_list = self.filter_no_code_file(diff_list)
+            diff_response.raise_for_status()
+            changes = MRDiff.model_validate(diff_response.json()).changes or []
+            diff_refs = MRDiff.model_validate(diff_response.json()).diff_refs
+            filtered_changes = self.filter_no_code_file(changes)
 
-        normalized_diff: List[Dict[str, Any]] = []
-        for f in filtered_diff_list:
-            status = "modified"
-            if f.new_file:
-                status = "added"
-            elif f.deleted_file:
-                status = "deleted"
-            elif f.renamed_file:
-                status = "renamed"
-            normalized_diff.append(
-                {
-                    "filename": f.new_path or f.old_path,
-                    "status": status,
-                    "patch": f.diff,
-                }
-            )
-
-        return normalized_diff, mr_obj
+        return filtered_changes, mr_obj
 
     def filter_no_code_file(self, diffs: List[MRDiffItem]) -> List[MRDiffItem]:
         filtered = []

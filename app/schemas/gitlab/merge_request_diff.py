@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -15,7 +15,17 @@ class MRDiffItem(BaseModel):
     renamed_file: bool
     deleted_file: bool
     generated_file: bool
+    extended_diff: Optional[str] = None
+    new_lines_with_number: Optional[Dict[int, str]] = None
+    old_lines_with_number: Optional[Dict[int, str]] = None
+
+
+class DiffRefs(BaseModel):
+    base_sha: str
+    head_sha: str
+    start_sha: str
 
 
 class MRDiff(BaseModel):
     changes: List[MRDiffItem]
+    diff_refs: DiffRefs

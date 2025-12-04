@@ -1,4 +1,3 @@
-import json
 from typing import Optional
 
 from fastapi import FastAPI, Header, HTTPException, Request
@@ -7,6 +6,7 @@ from fastapi.responses import JSONResponse
 from app.config import settings
 from app.schemas.gitlab.merge_request import GitlabMergeRequestPayload
 from app.services.gitlab import GitlabApiError, GitlabClient
+from app.services.patch.gitlab import PatchHandler
 
 app = FastAPI(title="SEELE Review FastAPI", version="0.1.0")
 
@@ -16,7 +16,6 @@ gitlab_client = GitlabClient(settings.gitlab_api_base)
 @app.post("/webhook/gitlab")
 async def handle_gitlab_webhook_trigger(
     request: Request,
-    x_gitlab_event: Optional[str] = Header(None, alias="X-Gitlab-Event"),
     x_ai_mode: Optional[str] = Header(None, alias="X-Ai-Mode"),
     x_push_url: Optional[str] = Header(None, alias="X-Push-Url"),
     x_gitlab_token: Optional[str] = Header(None, alias="X-Gitlab-Token"),
@@ -28,7 +27,8 @@ async def handle_gitlab_webhook_trigger(
     try:
         payload = GitlabMergeRequestPayload.model_validate_json(raw)
     except Exception as exc:
-        raise HTTPException(status_code=400, detail="Invalid JSON payload") from exc
+        raise HTTPException(
+            status_code=400, detail="Invalid JSON payload") from exc
 
     if payload.object_kind != "merge_request":
         return JSONResponse({"ok": True, "skipped": f"kind {payload.object_kind}"})
@@ -48,7 +48,8 @@ async def handle_gitlab_webhook_trigger(
     iid = attrs.iid
 
     if not (project_id and iid):
-        raise HTTPException(status_code=400, detail="Missing project_id or iid")
+        raise HTTPException(
+            status_code=400, detail="Missing project_id or iid")
 
     ai_mode = (x_ai_mode or "comment").lower()
     if ai_mode not in ("comment", "report"):
@@ -64,11 +65,17 @@ async def handle_gitlab_webhook_trigger(
     except GitlabApiError as e:
         print(f"[ERROR] get gitlab mr diff failed: {e}")
         return JSONResponse(
-            {"message": "failed to fetch changes from gitlab", "error": str(e)},
+            {"message": "failed to fetch changes from gitlab",
+                "error": str(e)},
             status_code=500,
         )
     desc = mr_obj.description or ""
     repo_label = f"gitlab:{payload.project.path_with_namespace}"
+    patch_handler = PatchHandler(diff)
+    extended_diff = patch_handler.get_extended_diff_content(
+        commit_message=attrs.title or "")
 
-    print(f"Processing GitLab MR !{iid} in project {project_id} with AI mode {ai_mode}")
+    print(
+        f"Processing GitLab MR !{iid} in project {project_id} with AI mode {ai_mode}")
     print(f"MR Diff:\n{diff}")
+    print(f"MR Extended Diff: \n{extended_diff}")
