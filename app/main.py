@@ -7,10 +7,15 @@ from app.config import settings
 from app.schemas.gitlab.merge_request import GitlabMergeRequestPayload
 from app.services.gitlab import GitlabApiError, GitlabClient
 from app.services.patch.gitlab import PatchHandler
+from app.services.agent.agent import AgentService
+from app.services.prompt.prompt import PromptService
 
 app = FastAPI(title="SEELE Review FastAPI", version="0.1.0")
 
 gitlab_client = GitlabClient(settings.gitlab_api_base)
+
+prompt_service = PromptService()
+agent_service = AgentService(prompt_service)
 
 
 @app.post("/webhook/gitlab")
@@ -75,7 +80,20 @@ async def handle_gitlab_webhook_trigger(
     extended_diff = patch_handler.get_extended_diff_content(
         commit_message=attrs.title or "")
 
+    # 调用 AgentService 获取代码审查结果
+    try:
+        reviews = await agent_service.get_prediction(extended_diff)
+    except Exception as e:
+        print(f"[ERROR] AI prediction failed: {e}")
+        return JSONResponse(
+            {"message": "AI review failed", "error": str(e)},
+            status_code=500,
+        )
+
     print(
         f"Processing GitLab MR !{iid} in project {project_id} with AI mode {ai_mode}")
     print(f"MR Diff:\n{diff}")
     print(f"MR Extended Diff: \n{extended_diff}")
+    print(f"AI Reviews: {reviews}")
+
+    # return JSONResponse({"ok": True, "reviews": reviews})
