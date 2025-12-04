@@ -1,7 +1,7 @@
 import os
-from typing import Optional, List, Dict, Any
+from typing import Optional, List
 from openai import AsyncOpenAI
-from app.schemas.agent.review import QWenChatResponse
+from app.schemas.agent.review import Review
 from app.services.agent.utils import extract_first_yaml_from_markdown
 from app.services.prompt.prompt import PromptService
 
@@ -16,23 +16,26 @@ class AgentService:
             'LLM_BASE_URL', 'https://dashscope.aliyuncs.com/compatible-mode/v1')
         self.ai_model = os.getenv('AI_MODEL', 'qwen3-max')
 
-        # Initialize OpenAI client
+        # init OpenAI client
         self.client = AsyncOpenAI(
             api_key=self.api_key,
             base_url=self.base_url,
         )
 
-    async def get_prediction(self, query: str) -> Optional[List[Dict[str, Any]]]:
+    async def get_prediction(self, query: str) -> Optional[List[Review]]:
         """Get prediction result"""
         answer = await self.call_agent(query)
-        print(f"=== Agent Answer:\n{answer}")
         result = extract_first_yaml_from_markdown(answer)
-        print(f"=== Parsed Result:\n{result}")
 
         if result and result.error:
             raise result.error
 
-        return result.parsed.get('reviews') if result and result.parsed else None
+        if result and result.parsed:
+            reviews_data = result.parsed.get('reviews', [])
+            # Convert dict list to Review model list
+            return [Review(**review_dict) for review_dict in reviews_data]
+
+        return None
 
     async def call_agent(self, query: str) -> str:
         """Call Qwen API"""

@@ -121,8 +121,6 @@ def extract_first_yaml_from_markdown(markdown_text: str, is_parse: bool = True) 
                     mr_review = MRReview(**mr_review_dict)
                     result.parsed = mr_review.model_dump()
 
-                print('Format fix successful, parsing completed')
-
             except Exception as fix_error:
                 result.error = fix_error
                 print(

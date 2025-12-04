@@ -9,6 +9,7 @@ from app.services.gitlab import GitlabApiError, GitlabClient
 from app.services.patch.gitlab import PatchHandler
 from app.services.agent.agent import AgentService
 from app.services.prompt.prompt import PromptService
+from app.services.publish.gitlab import GitlabPublishService
 
 app = FastAPI(title="SEELE Review FastAPI", version="0.1.0")
 
@@ -16,6 +17,11 @@ gitlab_client = GitlabClient(settings.gitlab_api_base)
 
 prompt_service = PromptService()
 agent_service = AgentService(prompt_service)
+publish_service = GitlabPublishService(
+    gitlab_api_base=settings.gitlab_api_base,
+    gitlab_token=settings.gitlab_token,
+    bot_name="🤖 AI Review Bot"  # 可以自定义机器人名称
+)
 
 
 @app.post("/webhook/gitlab")
@@ -74,13 +80,14 @@ async def handle_gitlab_webhook_trigger(
                 "error": str(e)},
             status_code=500,
         )
+
     desc = mr_obj.description or ""
     repo_label = f"gitlab:{payload.project.path_with_namespace}"
     patch_handler = PatchHandler(diff)
     extended_diff = patch_handler.get_extended_diff_content(
         commit_message=attrs.title or "")
 
-    # 调用 AgentService 获取代码审查结果
+    # Call AgentService to get code review results
     try:
         reviews = await agent_service.get_prediction(extended_diff)
     except Exception as e:
@@ -90,10 +97,40 @@ async def handle_gitlab_webhook_trigger(
             status_code=500,
         )
 
-    print(
-        f"Processing GitLab MR !{iid} in project {project_id} with AI mode {ai_mode}")
-    print(f"MR Diff:\n{diff}")
-    print(f"MR Extended Diff: \n{extended_diff}")
-    print(f"AI Reviews: {reviews}")
+    # Publish review results
+    if reviews:
+        try:
+            # Prepare callback data for notification
+            callback = {
+                'push_url': push_url,
+                'user_name': payload.user.name if payload.user else 'Unknown',
+                'project_name': payload.project.path_with_namespace,
+                'mr_title': title,
+                'mr_url': mr_obj.web_url,
+            }
 
-    # return JSONResponse({"ok": True, "reviews": reviews})
+            await publish_service.publish(
+                mode=ai_mode,
+                reviews=reviews,
+                mr_obj=mr_obj,
+                diff_items=extended_diff,
+                project_id=project_id,
+                mr_iid=iid,
+                callback=callback
+            )
+
+            print(
+                f"[SUCCESS] Published {len(reviews)} reviews in {ai_mode} mode")
+
+        except Exception as e:
+            print(f"[ERROR] Failed to publish reviews: {e}")
+            return JSONResponse(
+                {"message": "Failed to publish reviews", "error": str(e)},
+                status_code=500,
+            )
+
+    return JSONResponse({
+        "ok": True,
+        "reviews_count": len(reviews) if reviews else 0,
+        "mode": ai_mode
+    })
