@@ -13,7 +13,8 @@ QWEN_API_KEY = os.getenv("QWEN_API_KEY", "")
 QWEN_BASE_URL = os.getenv("QWEN_BASE_URL", "")
 
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET", "")
-GITHUB_API_TOKEN = os.getenv("GITHUB_API_TOKEN", "")
+GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
+GITHUB_API_BASE = os.getenv("GITHUB_API_BASE", "https://api.github.com")
 
 GITLAB_WEBHOOK_SECRET = os.getenv("GITLAB_WEBHOOK_SECRET", "")
 GITLAB_TOKEN = os.getenv("GITLAB_TOKEN", "")
@@ -37,7 +38,10 @@ class Settings(BaseSettings):
     github_webhook_secret: str = Field(
         default=GITHUB_WEBHOOK_SECRET, description="GitHub Webhook Secret"
     )
-    github_api_token: str = Field(default=GITHUB_API_TOKEN, description="GitHub Token")
+    github_token: str = Field(
+        default=GITHUB_TOKEN, description="GitHub Token")
+    github_api_base: str = Field(
+        default=GITHUB_API_BASE, description="GitHub API Base URL")
 
     # GitLab Config
     gitlab_webhook_secret: str = Field(
@@ -50,7 +54,8 @@ class Settings(BaseSettings):
     gitlab_timeout: float = 10.0
 
     # Slack Config
-    slack_webhook_ai_review: str = Field(default="", description="Slack Webhook URL")
+    slack_webhook_ai_review: str = Field(
+        default="", description="Slack Webhook URL")
 
     model_config = SettingsConfigDict(
         env_file=".env",

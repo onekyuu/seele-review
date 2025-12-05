@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Optional
+from typing import List, Optional
 
 import httpx
 from fastapi import HTTPException
@@ -8,35 +8,11 @@ from fastapi import HTTPException
 from app.config import settings
 from app.schemas.gitlab.merge_request_diff import MRDiff, MRDiffItem
 from app.schemas.gitlab.merge_request_object import MRObj
-
-CODE_EXTENSIONS = {
-    ".py",
-    ".js",
-    ".jsx",
-    ".ts",
-    ".tsx",
-    ".json",
-    ".html",
-    ".css",
-    ".scss",
-    ".go",
-    ".rs",
-    ".java",
-    ".kt",
-    ".c",
-    ".h",
-    ".cpp",
-    ".hpp",
-    ".yml",
-    ".yaml",
-    ".toml",
-    ".sh",
-    ".sql",
-}
+from app.constants import CODE_EXTENSIONS
 
 
 class GitlabApiError(Exception):
-    pass
+    """GitLab API error"""
 
 
 class GitlabClient:
