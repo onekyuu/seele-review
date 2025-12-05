@@ -20,6 +20,9 @@ GITLAB_WEBHOOK_SECRET = os.getenv("GITLAB_WEBHOOK_SECRET", "")
 GITLAB_TOKEN = os.getenv("GITLAB_TOKEN", "")
 GITLAB_API_BASE = os.getenv("GITLAB_API_BASE", "https://gitlab.com/api/v4")
 
+REPO_TARGETS = os.getenv("REPO_TARGETS", "gitlab")
+REPO_REVIEW_LANG = os.getenv("REPO_REVIEW_LANG", "zh")
+
 AI_COMMENT_MARKER = "<!-- powered by seele-review -->"
 
 
@@ -56,6 +59,22 @@ class Settings(BaseSettings):
     # Slack Config
     slack_webhook_ai_review: str = Field(
         default="", description="Slack Webhook URL")
+
+    # CLI
+    repo_targets: str = Field(
+        default=REPO_TARGETS, description="Repository Targets for SEELE-Review"
+    )
+    repo_review_lang: Literal['zh', 'ja', 'en'] = Field(
+        default=REPO_REVIEW_LANG, description="Review Language for SEELE-Review"
+    )
+
+    @property
+    def seele_review_targets(self) -> list[str]:
+        return [
+            t.strip()
+            for t in str(self.repo_targets).split(",")
+            if t.strip()
+        ]
 
     model_config = SettingsConfigDict(
         env_file=".env",

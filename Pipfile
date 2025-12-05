@@ -11,6 +11,11 @@ python-dotenv = "*"
 openai = "*"
 pyyaml = "*"
 pydantic-settings = "*"
+typer = {extras = ["all"], version = "*"}
+rich = "*"
+questionary = "*"
+seele-review = {file = ".", editable = true}
+pyfiglet = "*"
 
 [dev-packages]
 
