@@ -3,46 +3,20 @@ Note that when reviewing, you should focus on the code lines in the diff that ha
 
 We will use the following format to present the diff content of the MR code:
 
-## new_path: src/agent/agent.service.ts
-## old_path: src/agent/agent.service.ts
-@@ -1,16 +1,13 @@
-(1, 1) import { Injectable } from '@nestjs/common';
-(2, 2)  
-(3, ) -interface InputProps {
-(4, ) - code_diff: string;
-(5, ) - code_context: string;
-(6, ) - rules?: string;
-(7, ) -}
-( , 8) +type InputProps = Record<string, any>;
-(9, 9)  
-(10, 10) interface CallDifyParams {
-(11, 11) input: InputProps;
-(12, 12) query: string;
-(13, 13) conversation_id?: string;
-(14, 14) user: string;
-( , 15) + apiKey: string;
-(16, 16) }
-(17, 17)  
-(18, 18) @Injectable()@@ -31,7 +28,7 @@ export class AgentService {
-(31, 28) const res = await fetch(url, {
-(32, 29) method: 'POST',
-(33, 30) headers: {
-(34, ) - Authorization: 'Bearer app-9pp4RV4HhsrgBKxN0ETr6Hc7',
-( , 32) + Authorization: `Bearer ${params.apiKey}`,
-(36, 33) 'Content-Type': 'application/json',
-(37, 34) },
-(38, 35) body: JSON.stringify(body),
-(39, 36)
+## new_path: test.js
+## old_path: test.js
+@@ -5,3 +5,9 @@ console.log("test.js 4")
+(5, 5)   console.log("test.js 5")
+(6, 6)   console.log("test.js 6")
+(7, 7)   console.log("test.js 7")
+( , 8)  +console.log("test.js 8")
+( , 9)  +
+( , 10) +function mingzi() {
+( , 11) +  console.log("user name")
+( , 12) +}
+( , 13) +
+(8, 14)
 
-## new_path: src/webhook/decorators/advanced-header.decorator.ts
-## old_path: src/webhook/decorators/advanced-header.decorator.ts
-@@ -0,0 +1,152 @@
-( , 1) +import {
-( , 2) + createParamDecorator,
-( , 3) + ExecutionContext,
-( , 4) + BadRequestException,
-( , 5) +} from '@nestjs/common';
-( , 6) +
 
 - Lines beginning with "## new_path" represent the updated file path
 - Lines beginning with "## old_path" represent the original file path

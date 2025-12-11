@@ -2,8 +2,6 @@ from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
-# ---- Sub models ----
-
 
 class GitlabUser(BaseModel):
     id: int
@@ -113,9 +111,6 @@ class GitlabRepository(BaseModel):
     url: str
     description: Optional[str] = None
     homepage: str
-
-
-# ---- Main Webhook Model ----
 
 
 class GitlabMergeRequestPayload(BaseModel):
