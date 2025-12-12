@@ -9,8 +9,7 @@ load_dotenv()
 PORT = int(os.getenv("PORT", "8000"))
 AI_MODEL = os.getenv("AI_MODEL", "gpt-3.5-turbo")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
-QWEN_API_KEY = os.getenv("QWEN_API_KEY", "")
-QWEN_BASE_URL = os.getenv("QWEN_BASE_URL", "")
+LLM_BASE_URL = os.getenv("LLM_BASE_URL", "")
 
 GITHUB_WEBHOOK_SECRET = os.getenv("GITHUB_WEBHOOK_SECRET", "")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN", "")
@@ -27,6 +26,9 @@ AI_COMMENT_MARKER = "<!-- powered by seele-review -->"
 
 
 class Settings(BaseSettings):
+    """
+    Get settings from environment variables
+    """
     defalut_ai_mode: str = "comment"
     debug: bool = True
 
@@ -34,8 +36,12 @@ class Settings(BaseSettings):
     port: int = Field(default=8000, description="Server Port")
 
     # AI Config
-    qwen_api_key: str = Field(default=QWEN_API_KEY, description="Qwen API KEY")
+    openai_api_key: str = Field(
+        default=OPENAI_API_KEY, description="OpenAI API KEY")
     ai_model: str = Field(default=AI_MODEL, description="AI Model")
+    llm_base_api: str = Field(
+        default=LLM_BASE_URL, description="LLM API Base URL"
+    )
 
     # GitHub Config
     github_webhook_secret: str = Field(
@@ -70,6 +76,7 @@ class Settings(BaseSettings):
 
     @property
     def seele_review_targets(self) -> list[str]:
+        """the target platform for review results"""
         return [
             t.strip()
             for t in str(self.repo_targets).split(",")

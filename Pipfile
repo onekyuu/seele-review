@@ -16,6 +16,7 @@ rich = "*"
 questionary = "*"
 seele-review = {file = ".", editable = true}
 pyfiglet = "*"
+tiktoken = "*"
 
 [dev-packages]
 
