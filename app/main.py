@@ -2,7 +2,6 @@ from fastapi import FastAPI
 
 from app.config import settings
 
-# from app.routers import gitlab, github
 
 app = FastAPI(title="SEELE Review FastAPI", version="0.1.0")
 
@@ -13,10 +12,6 @@ if "gitlab" in settings.repo_targets:
 if "github" in settings.repo_targets:
     from app.routers import github
     app.include_router(github.router)
-
-# Include routers
-# app.include_router(gitlab.router)
-# app.include_router(github.router)
 
 
 @app.get("/")

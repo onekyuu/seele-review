@@ -145,12 +145,15 @@ class GitlabPublishService:
         # Send notification if callback provided
         if callback:
             self._publish_notification(
-                callback.get('push_url', ''),
-                callback.get('user_name', ''),
-                callback.get('project_name', ''),
-                mr_obj.source_branch,
-                mr_obj.target_branch,
-                callback.get('content', '')
+                push_url=callback.get('push_url', ''),
+                user_name=callback.get('user_name', ''),
+                project_name=callback.get('project_name', ''),
+                source_branch=mr_obj.source_branch,
+                target_branch=mr_obj.target_branch,
+                content=callback.get('content', ''),
+                mr_url=callback.get('mr_url', ''),
+                mr_title=callback.get('mr_title', ''),
+                reviews_count=len(reviews),
             )
 
     async def _publish_line_comment(
@@ -271,29 +274,58 @@ class GitlabPublishService:
         project_name: str,
         source_branch: str,
         target_branch: str,
-        content: str
+        content: str,
+        mr_url: str = "",
+        mr_title: str = "",
+        reviews_count: int = 0,
     ):
-        """Send notification to enterprise WeChat/DingTalk etc."""
+        """Send notification to Slack with rich formatting"""
         if not push_url:
             return
 
-        markdown_content = (
-            f'**{user_name}** initiated a merge request in project **{project_name}**\n'
-            f'Source branch: **{source_branch}**\n'
-            f'Target branch: **{target_branch}**\n\n'
-            f'{content}'
+        if reviews_count == 0:
+            icon = "✅"
+            result_text = "No issues found"
+        else:
+            icon = "📝"
+            result_text = f"{reviews_count} review comment{'s' if reviews_count > 1 else ''}"
+
+        if mr_url and mr_title:
+            mr_link = f"<{mr_url}|{mr_title}>"
+        elif mr_url:
+            mr_link = f"<{mr_url}|View MR>"
+        else:
+            mr_link = "N/A"
+
+        message = (
+            f"{icon} *AI Code Review Completed*\n\n"
+            f"*Project:* {project_name}\n"
+            f"*MR:* {mr_link}\n"
+            f"*Author:* {user_name}\n"
+            f"*Branch:* `{source_branch}` → `{target_branch}`\n"
+            f"*Result:* {result_text}"
         )
 
+        if content:
+            message += f"\n\n{content}"
+
         payload = {
-            'msgtype': 'markdown',
-            'markdown': {
-                'content': markdown_content,
-            },
+            'text': message
         }
 
         try:
-            # Use sync httpx client to send notification
             with httpx.Client(timeout=10.0) as client:
-                client.post(push_url, json=payload)
+                response = client.post(push_url, json=payload)
+
+                if response.status_code == 200:
+                    print('[SUCCESS] Slack notification sent')
+                    print(f'[DEBUG] Response: {response.text}')
+                else:
+                    print(
+                        f'[ERROR] Slack notification failed: {response.status_code}')
+                    print(f'[DEBUG] Response body: {response.text}')
+
         except Exception as e:
-            print(f'Failed to send notification: {str(e)}')
+            print(f'[ERROR] Failed to send Slack notification: {str(e)}')
+            import traceback
+            traceback.print_exc()

@@ -66,7 +66,7 @@ async def handle_gitlab_webhook_trigger(
     if ai_mode not in ("comment", "report"):
         ai_mode = "comment"
 
-    push_url = x_push_url or ""
+    push_url = x_push_url or settings.slack_webhook_ai_review or ""
     api_token = settings.gitlab_token or None
 
     try:
