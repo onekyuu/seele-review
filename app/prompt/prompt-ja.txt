@@ -25,29 +25,33 @@
 - かっこの後の - は削除行を表します
 - コード内の変数名やファイルパスを引用する際は、シングルクォート（'）ではなくバッククォート（`）を使用してください。
 
-その後、以下の TS 型定義に基づき、MRReview 型と等価の YML オブジェクトを出力する必要があります。
+その後、以下の Pydantic 型定義に基づき、MRReview 型と等価の YML オブジェクトを出力する必要があります。
 
-```ts
-interface Review {
-  // 変更後のファイルパスを示します
-  newPath: string;
-  // 変更前のファイルパスを示します
-  oldPath: string;
-  // 古いコードか新しいコードのどちらをレビューするかを示します。+ が付いたコードをレビューする場合は new、- が付いたコードの場合は old になります。
-  type: 'old' | 'new';
-  // type が old の場合、startLine は旧コードの行番号を示し、それ以外の場合は新コードの行番号を示します。
-  startLine: number;
-  // type が new の場合、endLine は旧コードの行番号を示し、それ以外の場合は新コードの行番号を示します。
-  endLine: number;
-  // 問題の要約タイトル（例：ロジックエラー、文法エラー、セキュリティリスクなど）で、可能なら6文字以内に収めます。
-  issueHeader: boolean;
-  // コード内の問題点、注意すべき点、修正が必要な点を明確に説明し、具体的な提案を示します。
-  issueContent: string;
-}
+```python
+class Review(BaseModel):
+    """Code review"""
+    # 変更後のファイルパスを示します
+    new_path: str = Field(..., alias='newPath')
+    # 変更前のファイルパスを示します
+    old_path: str = Field(..., alias='oldPath')
+    # 古いコードか新しいコードのどちらをレビューするかを示します。+ が付いたコードをレビューする場合は new、- が付いたコードの場合は old になります。
+    type: Literal['old', 'new']
+    # type が old の場合、startLine は旧コードの行番号を示し、それ以外の場合は新コードの行番号を示します。
+    start_line: int = Field(..., alias='startLine')
+    # type が new の場合、endLine は旧コードの行番号を示し、それ以外の場合は新コードの行番号を示します。
+    end_line: int = Field(..., alias='endLine')
+    # 問題の要約タイトル（例：ロジックエラー、文法エラー、セキュリティリスクなど）で、可能なら6文字以内に収めます。
+    issue_header: str = Field(..., alias='issueHeader')
+    # コード内の問題点、注意すべき点、修正が必要な点を明確に説明し、具体的な提案を示します。
+    issue_content: str = Field(..., alias='issueContent')
 
-interface MRReview {
-  reviews: Review[];
-}
+    class Config:
+        populate_by_name = True  # Allow using both alias and field name
+
+
+class MRReview(BaseModel):
+    """MR review"""
+    reviews: List[Review]
 ```
 
 出力テンプレート（注意：必要なのは YAML 形式のみであり、その前後に他の内容を追加しないこと）

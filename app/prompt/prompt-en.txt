@@ -26,29 +26,39 @@ We will use the following format to present the diff content of the MR code:
 - A - after the parentheses indicates a deleted line
 - When referencing variables, names, or file paths, use backticks (`) instead of single quotes (').
 
-Then you must output a YML object equivalent to the MRReview type based on the following TS type definitions:
+Then you must output a YML object equivalent to the MRReview type based on the following Pydantic type definitions:
 
-```ts
-interface Review {
-  // the file path after modification
-  newPath: string;
-  // the file path before modification
-  oldPath: string;
-  // Indicates whether the review targets old code or new code. If reviewing code marked with +, type is new; if reviewing code marked with -, type is old.
-  type: 'old' | 'new';
-  // If the type is old, startLine refers to the line number in the old code; otherwise, it refers to the line number in the new code.
-  startLine: number;
-  // If the type is new, endLine refers to the line number in the old code; otherwise, it refers to the line number in the new code.
-  endLine: number;
-  // Title summarizing the issue (e.g., logic error, syntax error, security risk), ideally no more than 6 characters.
-  issueHeader: boolean;
-  // Clearly describe any issues in the code that require attention or modification, and provide actionable suggestions.
-  issueContent: string;
-}
+```python
+class Review(BaseModel):
+    """Code review"""
+    # Represents the file path after modification
+    new_path: str = Field(..., alias='newPath')
+    # Represents the file path before modification
+    old_path: str = Field(..., alias='oldPath')
+    # Indicates whether reviewing old or new code, if reviewing + part of code, type is new
+    # if reviewing - part of code, type is old.
+    type: Literal['old', 'new']
+    # If old type, start_line represents the start_line of old code
+    # otherwise represents the start_line of new code
+    start_line: int = Field(..., alias='startLine')
+    # If new type, end_line represents the end_line of old code
+    # otherwise represents the end_line of new code
+    end_line: int = Field(..., alias='endLine')
+    # Title summarizing the issue (e.g., logic error, syntax error, security risk, etc.)
+    # preferably no more than 6 words
+    issue_header: str = Field(..., alias='issueHeader')
+    # Clearly describe the issue that exists, needs attention
+    # or should be modified in the code, and provide clear suggestions
+    issue_content: str = Field(..., alias='issueContent')
 
-interface MRReview {
-  reviews: Review[];
-}
+    class Config:
+        populate_by_name = True  # Allow using both alias and field name
+
+
+class MRReview(BaseModel):
+    """MR review"""
+    reviews: List[Review]
+
 ```
 
 Output template (note: I only need YAML content. Do not add anything before or after the YAML content):

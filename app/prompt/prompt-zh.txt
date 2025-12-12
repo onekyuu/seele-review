@@ -26,29 +26,34 @@
 - 括号后的 - 表示的是删除行
 - 引用代码中的变量、名称或文件路径时，请使用反引号（`）而不是单引号（'）。
 
-然后你必须根据下面的 TS 类型定义，输出等效于MRReview类型的YML对象：
+然后你必须根据下面的 Pydantic 类型定义，输出等效于MRReview类型的YML对象：
 
-```ts
-interface Review {
-  // 表示修改后的文件路径
-  newPath: string;
-  // 表示修改前的文件路径
-  oldPath: string;
-  // 表示评审的是旧代码还是新代码，如果评审的是 + 部分的代码，那么 type 就是 new，如果评审的是 - 部分的代码，那么 type 就是 old。
-  type: 'old' | 'new';
-  // 如果是 old 类型，那么 startLine 表示的是旧代码的第 startLine 行，否则表示的是新代码的第 startLine 行
-  startLine: number;
-  // 如果是 new 类型，那么 endLine 表示的是旧代码的第 endLine 行，否则表示的是新代码的第 endLine 行
-  endLine: number;
-  // 对于存在问题总结的标题，例如(逻辑错误、语法错误、安全风险等)，尽可能不超过 6 个字
-  issueHeader: boolean;
-  // 清晰的描述代码中存在、需要注意或者修改的问题，并给出明确建议
-  issueContent: string;
-}
+```python
+class Review(BaseModel):
+    """Code review"""
+    # 表示修改后的文件路径
+    new_path: str = Field(..., alias='newPath')
+    # 表示修改前的文件路径
+    old_path: str = Field(..., alias='oldPath')
+    # 表示评审的是旧代码还是新代码，如果评审的是 + 部分的代码，那么 type 就是 new，如果评审的是 - 部分的代码，那么 type 就是 old。
+    type: Literal['old', 'new']
+    # 如果是 old 类型，那么 startLine 表示的是旧代码的第 startLine 行，否则表示的是新代码的第 startLine 行
+    start_line: int = Field(..., alias='startLine')
+    # 如果是 new 类型，那么 endLine 表示的是旧代码的第 endLine 行，否则表示的是新代码的第 endLine 行
+    end_line: int = Field(..., alias='endLine')
+    # 对于存在问题总结的标题，例如(逻辑错误、语法错误、安全风险等)，尽可能不超过 6 个字
+    issue_header: str = Field(..., alias='issueHeader')
+    # 清晰的描述代码中存在、需要注意或者修改的问题，并给出明确建议
+    issue_content: str = Field(..., alias='issueContent')
 
-interface MRReview {
-  reviews: Review[];
-}
+    class Config:
+        populate_by_name = True  # Allow using both alias and field name
+
+
+class MRReview(BaseModel):
+    """MR review"""
+    reviews: List[Review]
+
 ```
 
 输出模板（注意，我只需要 yaml 格式的内容。yaml 内容的前后不要有其他内容）:
