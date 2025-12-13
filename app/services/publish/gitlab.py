@@ -188,13 +188,23 @@ class GitlabPublishService:
                 }
             }
 
-            response = await client.post(
-                f'{self.gitlab_api_base}/projects/{project_id}/merge_requests/{mr_iid}/discussions',
-                headers=self.headers,
-                json=discussion_data
-            )
-            response.raise_for_status()
-            return response.json()
+            try:
+                response = await client.post(
+                    f'{self.gitlab_api_base}/projects/{project_id}/merge_requests/{mr_iid}/discussions',
+                    headers=self.headers,
+                    json=discussion_data
+                )
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                print(
+                    f"[ERROR] Failed to publish review on {discussion_data['position']['new_path']}:{discussion_data['position']['new_line'] or discussion_data['position']['old_line']}")
+                print(f"[ERROR] Status Code: {e.response.status_code}")
+                print(f"[ERROR] GitLab Response: {e.response.text}")
+                print(f"[DEBUG] Payload sent: {discussion_data}")
+
+            except Exception as e:
+                print(f"[ERROR] Unexpected error publishing comment: {str(e)}")
 
     async def _publish_general_comment(
         self,
