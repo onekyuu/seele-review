@@ -54,7 +54,7 @@ Seele Review 是一个智能代码审查助手，使用大语言模型（LLM）�
 1. **克隆仓库**
 
    ```bash
-   git clone https://github.com/yourusername/seele-review.git
+   git clone git@github.com:onekyuu/seele-review.git
    cd seele-review
    ```
 

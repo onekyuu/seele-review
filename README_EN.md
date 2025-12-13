@@ -54,7 +54,7 @@ Seele Review is an intelligent code review assistant that automatically analyzes
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/yourusername/seele-review.git
+   git clone git@github.com:onekyuu/seele-review.git
    cd seele-review
    ```
 
@@ -486,14 +486,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [tiktoken](https://github.com/openai/tiktoken) - Token counting
 - [Typer](https://typer.tiangolo.com/) - CLI framework
 - [Rich](https://rich.readthedocs.io/) - Terminal formatting
-
----
-
-## 📞 Support
-
-- 📧 Email: support@example.com
-- 💬 Issues: [GitHub Issues](https://github.com/yourusername/seele-review/issues)
-- 📖 Docs: [Documentation](https://docs.example.com)
 
 ---
 

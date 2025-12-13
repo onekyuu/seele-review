@@ -54,7 +54,7 @@ Seele Review は、大規模言語モデル（LLM）を使用して GitLab の M
 1. **リポジトリのクローン**
 
    ```bash
-   git clone https://github.com/yourusername/seele-review.git
+   git clone git@github.com:onekyuu/seele-review.git
    cd seele-review
    ```
 
@@ -302,3 +302,179 @@ seele-review/
 Seele Review は、LLM のコンテキスト制限を超える大規模な diff を自動的に処理します：
 
 1. **Token カウント** - tiktoken を使用して正確に token 数を計算
+2. **スマート分割** - コンテキストを保持するためにファイル境界で分割
+3. **チャンク処理** - 各チャンクを独立して処理
+4. **結果のマージ** - 重複を排除し、複数のチャンクからのレビュー結果を統合
+
+```python
+# 使用例
+token_handler = TokenHandler(model="qwen3-max", max_tokens=100000)
+
+# コンテンツが制限内かチェック
+if token_handler.is_within_limit(diff_content):
+    reviews = await agent.get_prediction(diff_content)
+else:
+    # 自動分割と処理
+    reviews = await agent.get_prediction(diff_content)
+```
+
+### カスタム Prompt の追加
+
+1. `app/prompt/` に新しい prompt ファイルを作成：
+
+   ```bash
+   touch app/prompt/prompt-fr.txt
+   ```
+
+2. prompt 構造を定義：
+
+   ````text
+   あなたはコードレビューの専門家です...
+
+   ## new_path: file.py
+   ## old_path: file.py
+   ...
+
+   出力形式：
+   ```yaml
+   reviews:
+     - newPath: file.py
+       oldPath: file.py
+       ...
+   ````
+
+3. `PromptService` を更新して新しい prompt をロード：
+   ```python
+   def get_messages(self, query: str) -> list:
+       lang = settings.repo_review_lang
+       prompt_file = f"app/prompt/prompt-{lang}.txt"
+       # ...
+   ```
+
+### テストの実行
+
+```bash
+# Slack 統合のテスト
+python app/test_slack.py
+
+# curl を使用したテスト
+curl -X POST http://localhost:8000/webhook/gitlab \
+  -H "Content-Type: application/json" \
+  -H "X-Ai-Mode: comment" \
+  -d @test_payload.json
+```
+
+---
+
+## 🌟 高度な機能
+
+### カスタムレビュー基準
+
+特定の側面に焦点を当てるように prompt を変更します：
+
+- **セキュリティ** - 脆弱性とセキュリティのベストプラクティスに焦点を当てる
+- **パフォーマンス** - ボトルネックと最適化の機会を特定
+- **コードスタイル** - コーディング標準を強制
+- **ドキュメント** - 欠落しているコメントやドキュメントをチェック
+
+### マルチチャンク処理
+
+大規模なコード変更の処理：
+
+```
+[INFO] クエリ内容：12000 tokens
+[WARNING] コンテンツが制限を超えています。分割中...
+[INFO] 2 つのチャンクに分割
+[INFO] チャンク 1/2 を処理中（6500 tokens）
+[INFO] チャンク 2/2 を処理中（5500 tokens）
+[SUCCESS] 2 つのチャンクから 7 件のユニークなレビューをマージしました
+```
+
+### Slack 通知
+
+Slack でリアルタイムの更新を受け取る：
+
+```
+✅ AI コードレビュー完了
+
+プロジェクト：company/backend-api
+MR：認証バグの修正
+作成者：山田太郎
+ブランチ：feature/auth-fix → main
+結果：3 件のレビューコメント
+```
+
+---
+
+## 🐛 トラブルシューティング
+
+### よくある質問
+
+**1. "レビュー結果が生成されない"**
+
+- LLM API Key とエンドポイントアドレスを確認してください
+- diff 形式が正しいか検証してください
+- token 制限を確認してください
+
+**2. "Slack 通知が届かない"**
+
+- webhook URL が正しいか検証してください
+- URL 形式を確認してください（`hooks.slack.com` を含む必要があります）
+- `app/test_slack.py` を使用してテストしてください
+
+**3. "GitLab/GitHub API エラー"**
+
+- token に正しい権限があるか検証してください
+- base URL にアクセス可能か確認してください
+- token のスコープを確認してください（GitLab は api、GitHub は repo が必要）
+
+**4. "Token 制限超過"**
+
+- TokenHandler の `max_tokens` を増やしてください
+- より大きなコンテキストを持つ GPT-4-turbo や Claude を使用してください
+- 自動分割を有効にしてください（デフォルトで有効）
+
+### デバッグモード
+
+詳細ログを有効にする：
+
+```python
+# app/main.py
+import logging
+logging.basicConfig(level=logging.DEBUG)
+```
+
+---
+
+## 🤝 貢献
+
+貢献を歓迎します！Pull Request をお気軽に送信してください。
+
+1. このリポジトリを Fork
+2. 機能ブランチを作成（`git checkout -b feature/AmazingFeature`）
+3. 変更をコミット（`git commit -m 'Add some AmazingFeature'`）
+4. ブランチにプッシュ（`git push origin feature/AmazingFeature`）
+5. Pull Request を作成
+
+---
+
+## 📄 ライセンス
+
+このプロジェクトは MIT ライセンスの下で公開されています - 詳細は [LICENSE](LICENSE) ファイルを参照してください。
+
+---
+
+## 🙏 謝辞
+
+- [FastAPI](https://fastapi.tiangolo.com/) - モダンな Web フレームワーク
+- [tiktoken](https://github.com/openai/tiktoken) - Token カウント
+- [Typer](https://typer.tiangolo.com/) - CLI フレームワーク
+- [Rich](https://rich.readthedocs.io/) - ターミナルフォーマット
+
+---
+
+<div align="center">
+
+**Made with ❤️ by Seele Team**
+
+</div>
