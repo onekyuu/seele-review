@@ -24,7 +24,7 @@ class AgentService:
 
         self.token_handler = TokenHandler(
             model=self.ai_model,
-            max_tokens=6000,
+            max_tokens=100000,
             chunk_overlap=200
         )
 
@@ -134,7 +134,7 @@ class AgentService:
                 model=self.ai_model,
                 messages=self.prompt_service.get_messages(query),
                 temperature=0.2,
-                max_tokens=6000,
+                max_tokens=100000,
                 stream=True,
             )
 

@@ -2,13 +2,17 @@
 
 <div align="center">
 
-[English](README_EN.md) | 简体中文
+[English](README_EN.md) | 简体中文 | [日本語](README_JA.md)
 
 **AI 驱动的代码审查工具，支持 GitLab 和 GitHub**
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<br/>
+<img src="assets/seele-review-demo.jpg" alt="Seele Review Demo" width="800">
+<br/>
 
 [功能特性](#-功能特性) • [快速开始](#-快速开始) • [配置说明](#️-配置说明) • [使用指南](#-使用指南) • [API 文档](#-api-文档)
 
@@ -43,7 +47,7 @@ Seele Review 是一个智能代码审查助手，使用大语言模型（LLM）�
 - Pipenv
 - GitLab 或 GitHub 账号及 API 访问权限
 - OpenAI API Key 或兼容的 LLM 接口
-- （可选）Slack Webhook URL
+- （可选）Slack 或 Lark（飞书） Webhook URL
 
 ### 安装步骤
 
@@ -216,21 +220,6 @@ pipenv run seele run --host 0.0.0.0 --port 8000 --no-reload
 
 ## 🔌 API 文档
 
-### 健康检查
-
-```http
-GET /health
-```
-
-**响应：**
-
-```json
-{
-  "status": "ok",
-  "version": "1.0.0"
-}
-```
-
 ### GitLab Webhook
 
 ```http
@@ -319,7 +308,7 @@ Seele Review 自动处理超出 LLM 上下文限制的大型 diff：
 
 ```python
 # 使用示例
-token_handler = TokenHandler(model="gpt-4", max_tokens=6000)
+token_handler = TokenHandler(model="qwen3-max", max_tokens=100000)
 
 # 检查内容是否在限制内
 if token_handler.is_within_limit(diff_content):
@@ -481,14 +470,6 @@ logging.basicConfig(level=logging.DEBUG)
 - [tiktoken](https://github.com/openai/tiktoken) - Token 计数
 - [Typer](https://typer.tiangolo.com/) - CLI 框架
 - [Rich](https://rich.readthedocs.io/) - 终端格式化
-
----
-
-## 📞 支持
-
-- 📧 邮箱：support@example.com
-- 💬 Issues：[GitHub Issues](https://github.com/yourusername/seele-review/issues)
-- 📖 文档：[使用文档](https://docs.example.com)
 
 ---
 

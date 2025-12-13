@@ -2,13 +2,17 @@
 
 <div align="center">
 
-English | [简体中文](README.md)
+English | [简体中文](README.md) | [日本語](README_JA.md)
 
 **AI-Powered Code Review for GitLab & GitHub**
 
 [![Python](https://img.shields.io/badge/Python-3.12+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)](https://fastapi.tiangolo.com/)
 [![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+<br/>
+<img src="assets/seele-review-demo.jpg" alt="Seele Review Demo" width="800">
+<br/>
 
 [Features](#-features) • [Quick Start](#-quick-start) • [Configuration](#️-configuration) • [Usage](#-usage) • [API](#-api-reference)
 
@@ -29,7 +33,7 @@ Seele Review is an intelligent code review assistant that automatically analyzes
   - 📄 **Report Mode** - Comprehensive review summary in MR/PR description
 - 🌍 **Multi-Language** - Supports Chinese, English, and Japanese review comments
 - ⚡ **Smart Token Management** - Automatically splits large diffs into chunks
-- 🔔 **Slack Integration** - Real-time notifications for review completion
+- 🔔 **Notification Integration** - Real-time notifications to Slack, Lark (Feishu)
 - 🎨 **Beautiful CLI** - Interactive setup with rich terminal UI
 - 🔧 **Highly Configurable** - Flexible configuration via environment variables
 
@@ -43,7 +47,7 @@ Seele Review is an intelligent code review assistant that automatically analyzes
 - Pipenv
 - GitLab or GitHub account with API access
 - OpenAI API key or compatible LLM endpoint
-- (Optional) Slack webhook URL for notifications
+- (Optional) Slack or Lark webhook URL for notifications
 
 ### Installation
 
@@ -320,7 +324,7 @@ Seele Review automatically handles large diffs that exceed LLM context limits:
 
 ```python
 # Example usage
-token_handler = TokenHandler(model="gpt-4", max_tokens=6000)
+token_handler = TokenHandler(model="qwen3-max", max_tokens=100000)
 
 # Check if content fits
 if token_handler.is_within_limit(diff_content):
