@@ -96,7 +96,7 @@ async def handle_github_webhook_trigger(
     if review_mode not in ("comment", "report"):
         review_mode = "comment"
 
-    notification_url = push_url or ""
+    notification_url = push_url or settings.notification_webhook_url or ""
 
     # Use token from environment variable
     api_token = settings.github_token or token

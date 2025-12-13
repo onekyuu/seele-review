@@ -19,6 +19,9 @@ GITLAB_WEBHOOK_SECRET = os.getenv("GITLAB_WEBHOOK_SECRET", "")
 GITLAB_TOKEN = os.getenv("GITLAB_TOKEN", "")
 GITLAB_API_BASE = os.getenv("GITLAB_API_BASE", "https://gitlab.com/api/v4")
 
+NOTIFICATION_PLATFORM = os.getenv("NOTIFICATION_PLATFORM", "none")
+NOTIFICATION_WEBHOOK_URL = os.getenv("NOTIFICATION_WEBHOOK_URL", "")
+
 REPO_TARGETS = os.getenv("REPO_TARGETS", "gitlab")
 REPO_REVIEW_LANG = os.getenv("REPO_REVIEW_LANG", "zh")
 
@@ -39,7 +42,7 @@ class Settings(BaseSettings):
     openai_api_key: str = Field(
         default=OPENAI_API_KEY, description="OpenAI API KEY")
     ai_model: str = Field(default=AI_MODEL, description="AI Model")
-    llm_base_api: str = Field(
+    llm_base_url: str = Field(
         default=LLM_BASE_URL, description="LLM API Base URL"
     )
 
@@ -62,9 +65,13 @@ class Settings(BaseSettings):
     )
     gitlab_timeout: float = 10.0
 
-    # Slack Config
-    slack_webhook_ai_review: str = Field(
-        default="", description="Slack Webhook URL")
+    # notification Config
+    notification_platform: str = Field(
+        default=NOTIFICATION_PLATFORM, description="Notification Platform (none/slack/lark)"
+    )
+    notification_webhook_url: str = Field(
+        default=NOTIFICATION_WEBHOOK_URL, description="Notification Webhook URL"
+    )
 
     # CLI
     repo_targets: str = Field(

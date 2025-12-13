@@ -1,0 +1,50 @@
+{
+  "platform_title": "プラットフォーム選択",
+  "platform_desc": "サポートするプラットフォームを選択（複数選択可、スペースでチェック、矢印キーで移動、Enterで確定）",
+  "platform_question": "MR Agent でサポートするコードホスティングプラットフォームは？",
+  "platform_error": "少なくとも1つのプラットフォームを選択してください",
+  "no_selection": "プラットフォームが選択されていません。初期化をキャンセルしました。",
+
+  "lang_title": "言語選択",
+  "lang_desc": "デフォルトのコードレビューコメント言語を選択（AI出力言語にのみ影響）",
+  "lang_question": "デフォルトのコメント言語は？",
+
+  "gitlab_title": "GitLab 設定",
+  "gitlab_desc": "GitLab MR を統合する場合は、以下の情報を設定してください。\nGitLab を使用しない場合は、Enter キーでスキップできます。",
+  "gitlab_url": "GitLab Base URL（例：https://gitlab.com/api/v4）",
+  "gitlab_token": "GitLab デフォルトトークン（api 権限が必要、空白でスキップ）",
+
+  "github_title": "GitHub 設定",
+  "github_desc": "GitHub PR を統合する場合は、以下の情報を設定してください。\nデフォルトは公式の api.github.com を使用します。",
+  "github_url": "GitHub Base URL",
+  "github_token": "GitHub デフォルトトークン（repo 権限が必要、空白でスキップ）",
+
+  "llm_title": "LLM 設定",
+  "llm_desc": "LLM 推論インターフェースを設定します。\n例えば、OpenAI 互換インターフェースを使用します。",
+  "llm_url": "LLM Base URL（例：https://api.openai.com、空白でスキップ）",
+  "llm_key": "LLM API Key（空白でスキップ）",
+  "llm_model": "LLM モデル名（例：gpt-4.1-mini）",
+
+  "step": "ステップ",
+  "choose_platforms": "プラットフォームを選択...",
+  "choose_lang": "デフォルトのコメント言語を選択...",
+  "config_gitlab": "GitLab を設定...",
+  "config_github": "GitHub を設定...",
+  "config_llm": "LLM を設定...",
+  "config_notification": "通知サービスを設定...",
+
+  "confirm_title": "確認",
+  "confirm_desc": "以下の .env 内容を生成します：\n\n",
+  "complete_title": "完了",
+  "complete_desc": ".env が生成されました：",
+
+  "chinese": "中国語",
+  "japanese": "日本語",
+  "english": "英語",
+
+  "notification_title": "通知サービス",
+  "notification_desc": "通知サービスを選択（矢印キーで移動、Enterで確認）",
+  "notification_question": "通知サービスを選択：",
+  "notification_none": "None（通知なし）",
+  "notification_webhook_prompt": "{service} の Webhook URL を入力："
+}

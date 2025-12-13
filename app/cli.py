@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, Dict
+from typing import List
 
 import typer
 import questionary
@@ -9,147 +9,11 @@ from rich.text import Text
 from rich.align import Align
 import pyfiglet
 
+from app.utils.i18n import t, get_available_languages
+
 app = typer.Typer(help="MR Agent CLI")
 console = Console()
 ENV_FILE = Path(".env")
-
-# 多语言文本字典
-TRANSLATIONS: Dict[str, Dict[str, str]] = {
-    "en": {
-        "platform_title": "Platform Selection",
-        "platform_desc": "Select platforms to support (multi-select, use space to check, arrow keys to move, enter to confirm)",
-        "platform_question": "Which code hosting platforms do you want MR Agent to support?",
-        "platform_error": "At least one platform must be selected",
-        "no_selection": "No platform selected, initialization cancelled.",
-
-        "lang_title": "Language Selection",
-        "lang_desc": "Select default code review comment language (affects AI output language only)",
-        "lang_question": "Default comment language?",
-
-        "gitlab_title": "GitLab Configuration",
-        "gitlab_desc": "If you plan to integrate GitLab MR, configure the following information.\nIf you don't use GitLab, you can press Enter to skip.",
-        "gitlab_url": "GitLab Base URL (e.g., https://gitlab.example.com)",
-        "gitlab_token": "GitLab Default Token (with api permission, leave empty to skip)",
-
-        "github_title": "GitHub Configuration",
-        "github_desc": "If you plan to integrate GitHub PR, configure the following information.\nDefault uses official api.github.com.",
-        "github_url": "GitHub Base URL",
-        "github_token": "GitHub Default Token (with repo permission, leave empty to skip)",
-
-        "llm_title": "LLM Configuration",
-        "llm_desc": "Configure LLM inference interface.\nFor example, use OpenAI compatible interface.",
-        "llm_url": "LLM Base URL (e.g., https://api.openai.com, leave empty to skip)",
-        "llm_key": "LLM API Key (leave empty to skip)",
-        "llm_model": "LLM Model Name (e.g., gpt-4.1-mini)",
-
-        "step": "Step",
-        "choose_platforms": "Choose platforms...",
-        "choose_lang": "Choose default comment language...",
-        "config_gitlab": "Configure GitLab...",
-        "config_github": "Configure GitHub...",
-        "config_llm": "Configure LLM...",
-
-        "confirm_title": "Confirmation",
-        "confirm_desc": "About to generate the following .env content:\n\n",
-        "complete_title": "Completed",
-        "complete_desc": ".env generated at",
-
-        "chinese": "Chinese",
-        "japanese": "Japanese",
-        "english": "English",
-    },
-    "zh": {
-        "platform_title": "平台选择",
-        "platform_desc": "选择要支持的平台（多选，空格勾选，方向键移动，回车确认）",
-        "platform_question": "你希望 MR Agent 支持哪些代码托管平台？",
-        "platform_error": "至少选择一个平台",
-        "no_selection": "未选择平台，初始化已取消。",
-
-        "lang_title": "语言选择",
-        "lang_desc": "选择默认代码审查评论语言（仅影响 AI 输出语言）",
-        "lang_question": "默认评论语言？",
-
-        "gitlab_title": "GitLab 配置",
-        "gitlab_desc": "如果你打算集成 GitLab MR，请配置以下信息。\n如果不使用 GitLab，可以按回车跳过。",
-        "gitlab_url": "GitLab Base URL（例如：https://gitlab.example.com）",
-        "gitlab_token": "GitLab 默认 Token（需要 api 权限，留空跳过）",
-
-        "github_title": "GitHub 配置",
-        "github_desc": "如果你打算集成 GitHub PR，请配置以下信息。\n默认使用官方 api.github.com。",
-        "github_url": "GitHub Base URL",
-        "github_token": "GitHub 默认 Token（需要 repo 权限，留空跳过）",
-
-        "llm_title": "LLM 配置",
-        "llm_desc": "配置 LLM 推理接口。\n例如，使用 OpenAI 兼容接口。",
-        "llm_url": "LLM Base URL（例如：https://api.openai.com，留空跳过）",
-        "llm_key": "LLM API Key（留空跳过）",
-        "llm_model": "LLM 模型名称（例如：gpt-4.1-mini）",
-
-        "step": "步骤",
-        "choose_platforms": "选择平台...",
-        "choose_lang": "选择默认评论语言...",
-        "config_gitlab": "配置 GitLab...",
-        "config_github": "配置 GitHub...",
-        "config_llm": "配置 LLM...",
-
-        "confirm_title": "确认",
-        "confirm_desc": "即将生成以下 .env 内容：\n\n",
-        "complete_title": "完成",
-        "complete_desc": ".env 已生成于",
-
-        "chinese": "中文",
-        "japanese": "日语",
-        "english": "英语",
-    },
-    "ja": {
-        "platform_title": "プラットフォーム選択",
-        "platform_desc": "サポートするプラットフォームを選択（複数選択可、スペースでチェック、矢印キーで移動、Enterで確定）",
-        "platform_question": "MR Agent でサポートするコードホスティングプラットフォームは？",
-        "platform_error": "少なくとも1つのプラットフォームを選択してください",
-        "no_selection": "プラットフォームが選択されていません。初期化をキャンセルしました。",
-
-        "lang_title": "言語選択",
-        "lang_desc": "デフォルトのコードレビューコメント言語を選択（AI出力言語にのみ影響）",
-        "lang_question": "デフォルトのコメント言語は？",
-
-        "gitlab_title": "GitLab 設定",
-        "gitlab_desc": "GitLab MR を統合する場合は、以下の情報を設定してください。\nGitLab を使用しない場合は、Enter キーでスキップできます。",
-        "gitlab_url": "GitLab Base URL（例：https://gitlab.example.com）",
-        "gitlab_token": "GitLab デフォルトトークン（api 権限が必要、空白でスキップ）",
-
-        "github_title": "GitHub 設定",
-        "github_desc": "GitHub PR を統合する場合は、以下の情報を設定してください。\nデフォルトは公式の api.github.com を使用します。",
-        "github_url": "GitHub Base URL",
-        "github_token": "GitHub デフォルトトークン（repo 権限が必要、空白でスキップ）",
-
-        "llm_title": "LLM 設定",
-        "llm_desc": "LLM 推論インターフェースを設定します。\n例えば、OpenAI 互換インターフェースを使用します。",
-        "llm_url": "LLM Base URL（例：https://api.openai.com、空白でスキップ）",
-        "llm_key": "LLM API Key（空白でスキップ）",
-        "llm_model": "LLM モデル名（例：gpt-4.1-mini）",
-
-        "step": "ステップ",
-        "choose_platforms": "プラットフォームを選択...",
-        "choose_lang": "デフォルトのコメント言語を選択...",
-        "config_gitlab": "GitLab を設定...",
-        "config_github": "GitHub を設定...",
-        "config_llm": "LLM を設定...",
-
-        "confirm_title": "確認",
-        "confirm_desc": "以下の .env 内容を生成します：\n\n",
-        "complete_title": "完了",
-        "complete_desc": ".env が生成されました：",
-
-        "chinese": "中国語",
-        "japanese": "日本語",
-        "english": "英語",
-    }
-}
-
-
-def t(key: str, lang: str = "en") -> str:
-    """Get translated text"""
-    return TRANSLATIONS.get(lang, TRANSLATIONS["en"]).get(key, key)
 
 
 def print_banner_rainbow() -> None:
@@ -300,7 +164,7 @@ def ask_gitlab(lang: str) -> tuple[str | None, str | None]:
 
     gitlab_base = questionary.text(
         t("gitlab_url", lang),
-        default="",
+        default="https://gitlab.com/api/v4",
     ).ask()
 
     gitlab_token = questionary.password(
@@ -358,6 +222,49 @@ def ask_llm(lang: str) -> tuple[str | None, str | None, str | None]:
     return llm_base or None, llm_key or None, llm_model or None
 
 
+def ask_notification(lang: str) -> tuple[str, str]:
+    """Ask notification configuration with i18n support"""
+    console.print(Panel(
+        t('notification_desc', lang),
+        title=t('notification_title', lang),
+        border_style="magenta",
+    ))
+
+    # Use translated none text as key
+    none_text = t('notification_none', lang)
+
+    notification_service = questionary.select(
+        t('notification_question', lang),
+        choices=[
+            none_text,
+            "Slack",
+            "Lark (飞书)",
+        ],
+        default=none_text,
+    ).ask()
+
+    # Get webhook URL if a service is selected
+    notification_webhook = ""
+    if notification_service != none_text:
+        webhook_prompt = t('notification_webhook_prompt', lang).format(
+            service=notification_service)
+        notification_webhook = questionary.text(
+            webhook_prompt,
+            default="",
+        ).ask()
+
+    # Map to configuration values
+    notification_type_map = {
+        none_text: "none",
+        "Slack": "slack",
+        "Lark (飞书)": "lark",
+    }
+
+    notification_type = notification_type_map.get(notification_service, "none")
+
+    return notification_type, notification_webhook or ""
+
+
 @app.command()
 def init():
     """Interactive .env initialization with i18n support"""
@@ -391,13 +298,18 @@ def init():
     if "github" in targets_set:
         console.print()
         console.print(
-            f"[bold cyan]{t('step', cli_lang)} 4[/bold cyan] {t('config_github', cli_lang)}")
+            f"[bold cyan]{t('step', cli_lang)} 3[/bold cyan] {t('config_github', cli_lang)}")
         github_base, github_token = ask_github(cli_lang)
 
     console.print()
     console.print(
-        f"[bold cyan]{t('step', cli_lang)} 5[/bold cyan] {t('config_llm', cli_lang)}")
+        f"[bold cyan]{t('step', cli_lang)} 4[/bold cyan] {t('config_llm', cli_lang)}")
     llm_base, llm_key, llm_model = ask_llm(cli_lang)
+
+    console.print()
+    console.print(
+        f"[bold cyan]{t('step', cli_lang)} 5[/bold cyan] {t('config_notification', cli_lang)}")
+    notification_type, notification_webhook = ask_notification(cli_lang)
 
     # Generate .env content
     lines: list[str] = []
@@ -405,21 +317,31 @@ def init():
     lines.append(f"REPO_REVIEW_LANG={review_lang}")
 
     if gitlab_base:
-        lines.append(f"GITLAB_BASE_URL={gitlab_base}")
+        lines.append(f"GITLAB_API_BASE={gitlab_base}")
     if gitlab_token:
-        lines.append(f"GITLAB_DEFAULT_TOKEN={gitlab_token}")
+        lines.append(f"GITLAB_TOKEN={gitlab_token}")
 
     if github_base:
-        lines.append(f"GITHUB_BASE_URL={github_base}")
+        lines.append(f"GITHUB_API_BASE={github_base}")
     if github_token:
-        lines.append(f"GITHUB_DEFAULT_TOKEN={github_token}")
+        lines.append(f"GITHUB_TOKEN={github_token}")
 
     if llm_base:
         lines.append(f"LLM_BASE_URL={llm_base}")
     if llm_key:
-        lines.append(f"LLM_API_KEY={llm_key}")
+        lines.append(f"OPENAI_API_KEY={llm_key}")
     if llm_model:
-        lines.append(f"LLM_MODEL={llm_model}")
+        lines.append(f"AI_MODEL={llm_model}")
+
+    # Notification Configuration
+    lines.append(f"NOTIFICATION_PLATFORM={notification_type}")
+    lines.append(f"NOTIFICATION_WEBHOOK_URL={notification_webhook}")
+
+    # Legacy webhook URLs (deprecated, use NOTIFICATION_WEBHOOK_URL instead)
+    lines.append(
+        f"SLACK_WEBHOOK_AI_REVIEW={notification_webhook if notification_type == 'slack' else ''}")
+    lines.append(
+        f"LARK_WEBHOOK_URL={notification_webhook if notification_type == 'lark' else ''}")
 
     console.print()
     console.print(Panel(
@@ -429,8 +351,8 @@ def init():
     ))
 
     # Uncomment to actually write file
-    # content = "\n".join(lines) + "\n"
-    # ENV_FILE.write_text(content, encoding="utf-8")
+    content = "\n".join(lines) + "\n"
+    ENV_FILE.write_text(content, encoding="utf-8")
 
     console.print(Panel(
         f"{t('complete_desc', cli_lang)} {ENV_FILE.absolute()}",

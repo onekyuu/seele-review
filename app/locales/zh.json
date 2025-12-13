@@ -1,0 +1,50 @@
+{
+  "platform_title": "平台选择",
+  "platform_desc": "选择要支持的平台（多选，空格勾选，方向键移动，回车确认）",
+  "platform_question": "你希望 MR Agent 支持哪些代码托管平台？",
+  "platform_error": "至少选择一个平台",
+  "no_selection": "未选择平台，初始化已取消。",
+
+  "lang_title": "语言选择",
+  "lang_desc": "选择默认代码审查评论语言（仅影响 AI 输出语言）",
+  "lang_question": "默认评论语言？",
+
+  "gitlab_title": "GitLab 配置",
+  "gitlab_desc": "如果你打算集成 GitLab MR，请配置以下信息。\n如果不使用 GitLab，可以按回车跳过。",
+  "gitlab_url": "GitLab Base URL（例如：https://gitlab.com/api/v4）",
+  "gitlab_token": "GitLab 默认 Token（需要 api 权限，留空跳过）",
+
+  "github_title": "GitHub 配置",
+  "github_desc": "如果你打算集成 GitHub PR，请配置以下信息。\n默认使用官方 api.github.com。",
+  "github_url": "GitHub Base URL",
+  "github_token": "GitHub 默认 Token（需要 repo 权限，留空跳过）",
+
+  "llm_title": "LLM 配置",
+  "llm_desc": "配置 LLM 推理接口。\n例如，使用 OpenAI 兼容接口。",
+  "llm_url": "LLM Base URL（例如：https://api.openai.com，留空跳过）",
+  "llm_key": "LLM API Key（留空跳过）",
+  "llm_model": "LLM 模型名称（例如：gpt-4.1-mini）",
+
+  "step": "步骤",
+  "choose_platforms": "选择平台...",
+  "choose_lang": "选择默认评论语言...",
+  "config_gitlab": "配置 GitLab...",
+  "config_github": "配置 GitHub...",
+  "config_llm": "配置 LLM...",
+  "config_notification": "配置 通知服务...",
+
+  "confirm_title": "确认",
+  "confirm_desc": "即将生成以下 .env 内容：\n\n",
+  "complete_title": "完成",
+  "complete_desc": ".env 已生成于",
+
+  "chinese": "中文",
+  "japanese": "日语",
+  "english": "英语",
+
+  "notification_title": "通知服务",
+  "notification_desc": "选择通知服务（方向键移动，回车确认）",
+  "notification_question": "选择通知服务：",
+  "notification_none": "None（不使用通知）",
+  "notification_webhook_prompt": "输入 {service} Webhook URL："
+}

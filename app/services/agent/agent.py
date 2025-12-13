@@ -14,7 +14,7 @@ class AgentService:
     def __init__(self, prompt_service: PromptService):
         self.prompt_service = prompt_service
         self.api_key = settings.openai_api_key
-        self.base_url = settings.llm_base_api
+        self.base_url = settings.llm_base_url
         self.ai_model = settings.ai_model
 
         self.client = AsyncOpenAI(

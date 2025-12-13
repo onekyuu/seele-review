@@ -4,6 +4,7 @@ from typing import Optional, List, Dict, Any, Literal
 from app.schemas.agent.review import Review
 from app.schemas.gitlab.merge_request_object import MRObj
 from app.schemas.gitlab.merge_request_diff import MRDiffItem
+from app.services.notification import SlackNotifier
 
 
 ISSUE_COMMENT_MARKDOWN_TEMPLATE = (
@@ -35,6 +36,7 @@ class GitlabPublishService:
         self.gitlab_token = gitlab_token
         self.bot_name = bot_name
         self.headers = {'PRIVATE-TOKEN': gitlab_token}
+        self.slack_notifier = SlackNotifier()
 
     async def publish(
         self,
@@ -144,7 +146,7 @@ class GitlabPublishService:
 
         # Send notification if callback provided
         if callback:
-            self._publish_notification(
+            self.slack_notifier.send_review_notification(
                 push_url=callback.get('push_url', ''),
                 user_name=callback.get('user_name', ''),
                 project_name=callback.get('project_name', ''),
@@ -266,66 +268,3 @@ class GitlabPublishService:
                 current_new_line += 1
 
         return '\n'.join(result_lines)
-
-    def _publish_notification(
-        self,
-        push_url: str,
-        user_name: str,
-        project_name: str,
-        source_branch: str,
-        target_branch: str,
-        content: str,
-        mr_url: str = "",
-        mr_title: str = "",
-        reviews_count: int = 0,
-    ):
-        """Send notification to Slack with rich formatting"""
-        if not push_url:
-            return
-
-        if reviews_count == 0:
-            icon = "✅"
-            result_text = "No issues found"
-        else:
-            icon = "📝"
-            result_text = f"{reviews_count} review comment{'s' if reviews_count > 1 else ''}"
-
-        if mr_url and mr_title:
-            mr_link = f"<{mr_url}|{mr_title}>"
-        elif mr_url:
-            mr_link = f"<{mr_url}|View MR>"
-        else:
-            mr_link = "N/A"
-
-        message = (
-            f"{icon} *AI Code Review Completed*\n\n"
-            f"*Project:* {project_name}\n"
-            f"*MR:* {mr_link}\n"
-            f"*Author:* {user_name}\n"
-            f"*Branch:* `{source_branch}` → `{target_branch}`\n"
-            f"*Result:* {result_text}"
-        )
-
-        if content:
-            message += f"\n\n{content}"
-
-        payload = {
-            'text': message
-        }
-
-        try:
-            with httpx.Client(timeout=10.0) as client:
-                response = client.post(push_url, json=payload)
-
-                if response.status_code == 200:
-                    print('[SUCCESS] Slack notification sent')
-                    print(f'[DEBUG] Response: {response.text}')
-                else:
-                    print(
-                        f'[ERROR] Slack notification failed: {response.status_code}')
-                    print(f'[DEBUG] Response body: {response.text}')
-
-        except Exception as e:
-            print(f'[ERROR] Failed to send Slack notification: {str(e)}')
-            import traceback
-            traceback.print_exc()

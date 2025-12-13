@@ -1,0 +1,50 @@
+{
+  "platform_title": "Platform Selection",
+  "platform_desc": "Select platforms to support (multi-select, use space to check, arrow keys to move, enter to confirm)",
+  "platform_question": "Which code hosting platforms do you want MR Agent to support?",
+  "platform_error": "At least one platform must be selected",
+  "no_selection": "No platform selected, initialization cancelled.",
+
+  "lang_title": "Language Selection",
+  "lang_desc": "Select default code review comment language (affects AI output language only)",
+  "lang_question": "Default comment language?",
+
+  "gitlab_title": "GitLab Configuration",
+  "gitlab_desc": "If you plan to integrate GitLab MR, configure the following information.\nIf you don't use GitLab, you can press Enter to skip.",
+  "gitlab_url": "GitLab Base URL (e.g., https://gitlab.com/api/v4)",
+  "gitlab_token": "GitLab Default Token (with api permission, leave empty to skip)",
+
+  "github_title": "GitHub Configuration",
+  "github_desc": "If you plan to integrate GitHub PR, configure the following information.\nDefault uses official api.github.com.",
+  "github_url": "GitHub Base URL",
+  "github_token": "GitHub Default Token (with repo permission, leave empty to skip)",
+
+  "llm_title": "LLM Configuration",
+  "llm_desc": "Configure LLM inference interface.\nFor example, use OpenAI compatible interface.",
+  "llm_url": "LLM Base URL (e.g., https://api.openai.com, leave empty to skip)",
+  "llm_key": "LLM API Key (leave empty to skip)",
+  "llm_model": "LLM Model Name (e.g., gpt-4.1-mini)",
+
+  "step": "Step",
+  "choose_platforms": "Choose platforms...",
+  "choose_lang": "Choose default comment language...",
+  "config_gitlab": "Configure GitLab...",
+  "config_github": "Configure GitHub...",
+  "config_llm": "Configure LLM...",
+  "config_notification": "Configure Notification Service...",
+
+  "confirm_title": "Confirmation",
+  "confirm_desc": "About to generate the following .env content:\n\n",
+  "complete_title": "Completed",
+  "complete_desc": ".env generated at",
+
+  "chinese": "Chinese",
+  "japanese": "Japanese",
+  "english": "English",
+
+  "notification_title": "Notification Service",
+  "notification_desc": "Select notification service (use arrow keys to move, enter to confirm)",
+  "notification_question": "Select notification service:",
+  "notification_none": "None (No notification)",
+  "notification_webhook_prompt": "Enter {service} Webhook URL:"
+}
